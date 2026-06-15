@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "LoRA trainer + Gradio web UI for the Anima (Cosmos-Predict2 DiT) model, with native Intel XPU and CUDA support (no IPEX)."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "Apache-2.0" }
+# GPL-3.0 because src/anima_trainer/vendor/comfy_anima includes code derived from
+# ComfyUI (GPL-3.0). See VENDOR_LICENSES.md.
+license = { text = "GPL-3.0-or-later" }
 authors = [{ name = "anima-lora-trainer contributors" }]
 
 # NOTE: torch is intentionally NOT pinned here. Install the correct backend
@@ -30,6 +32,8 @@ dependencies = [
     # base dep. For Intel-accelerated tagging install `onnxruntime-openvino`
     # instead and pick the OpenVINOExecutionProvider.
     "onnxruntime>=1.18.0",
+    # Required by the vendored native Anima DiT.
+    "einops>=0.8.0",
 ]
 
 [project.optional-dependencies]
