@@ -26,8 +26,15 @@ self-attention (`attn1`) and cross-attention (`attn2`) blocks. Training uses a
 
 ## Install
 
+```bash
+git clone https://github.com/SHoogstad/anima-lora-trainer.git
+cd anima-lora-trainer
+```
+
 Install the **correct PyTorch build for your hardware first**, then this package. The
 wheel index differs per backend, which is why torch is not pinned in `pyproject.toml`.
+Per-backend requirement files are provided too (`requirements-xpu.txt`,
+`requirements-cuda.txt`, `requirements-cpu.txt`).
 
 ### Intel GPU (Arc / Battlemage / Lunar Lake iGPU / Data Center Max)
 ```bash
@@ -112,17 +119,25 @@ other Anima-aware tools.
 ## Project layout
 
 ```
-src/anima_trainer/
-├── device.py     # XPU/CUDA/CPU abstraction — autocast, AMP, memory, seeding (no IPEX)
-├── config.py     # typed TrainConfig with TOML load/save
-├── model.py      # HF download + load DiT / Qwen-3 TE / Qwen-Image VAE
-├── encoders.py   # the only model-specific VAE/text-encode forward passes
-├── lora.py       # PEFT LoRA injection + safetensors export
-├── dataset.py    # bucketing, image loading, latent/text caching
-├── flow.py       # rectified-flow timestep sampling + loss
-├── train.py      # the training loop (CLI + UI driver)
-├── webui.py      # minimal Gradio control panel
-└── cli.py        # `anima-train`
+anima-lora-trainer/
+├── Dockerfile              # Ubuntu 24.04 + Intel GPU runtime (no oneAPI)
+├── docker-compose.yml      # OS-only image; venv/cache/data on the `workspace` volume
+├── docker/start.sh         # first-boot setup + web-UI launcher
+├── pyproject.toml          # backend-agnostic deps + console scripts
+├── requirements-{xpu,cuda,cpu}.txt
+├── configs/default.toml    # starter training config
+├── tests/                  # device, flow, config, LoRA-target tests (CPU)
+└── src/anima_trainer/
+    ├── device.py     # XPU/CUDA/CPU abstraction — autocast, AMP, memory, seeding (no IPEX)
+    ├── config.py     # typed TrainConfig with TOML load/save
+    ├── model.py      # HF download + load DiT / Qwen-3 TE / Qwen-Image VAE
+    ├── encoders.py   # the only model-specific VAE/text-encode forward passes
+    ├── lora.py       # PEFT LoRA injection + safetensors export
+    ├── dataset.py    # bucketing, image loading, latent/text caching
+    ├── flow.py       # rectified-flow timestep sampling + loss
+    ├── train.py      # the training loop (CLI + UI driver)
+    ├── webui.py      # minimal Gradio control panel
+    └── cli.py        # `anima-train`
 ```
 
 ## Tests
