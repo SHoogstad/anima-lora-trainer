@@ -118,7 +118,16 @@ class WD14Tagger:
     def _load(self) -> None:
         if self._session is not None:
             return
-        import onnxruntime as ort
+        try:
+            import onnxruntime as ort
+        except ImportError as exc:
+            raise ImportError(
+                "onnxruntime is required for auto-tagging. Install it with "
+                "`pip install onnxruntime` (it's a base dependency, so a fresh "
+                "`pip install -e .` also covers it). In the Docker container, run "
+                "`pip install onnxruntime` in the venv, or set ANIMA_REINSTALL=1 "
+                "and restart."
+            ) from exc
         from huggingface_hub import hf_hub_download
 
         model_path = hf_hub_download(self.cfg.repo_id, MODEL_FILE,

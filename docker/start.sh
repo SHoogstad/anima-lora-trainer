@@ -37,8 +37,8 @@ if [ ! -f "$MARKER" ] || [ "${ANIMA_REINSTALL:-0}" = "1" ]; then
     fi
     echo "[start] installing PyTorch from $TORCH_INDEX"
     "$PY" -m pip install "torch>=2.8" --index-url "$TORCH_INDEX"
-    echo "[start] installing anima-lora-trainer (+ WD14 tagging) from $APP_DIR"
-    "$PY" -m pip install -e "$APP_DIR[tagging]"
+    echo "[start] installing anima-lora-trainer from $APP_DIR"
+    "$PY" -m pip install -e "$APP_DIR"
     touch "$MARKER"
 fi
 

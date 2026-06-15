@@ -9,7 +9,9 @@ the trainer package; this file is only glue.
 from __future__ import annotations
 
 import logging
+import os
 import threading
+from pathlib import Path
 
 import gradio as gr
 
@@ -19,6 +21,19 @@ from .device import environment_report, list_devices
 from .train import TrainState, train
 
 logger = logging.getLogger(__name__)
+
+# Datasets are subfolders of <repo-root>/datasets, resolved from this file's
+# location so it's independent of the working directory. Override with
+# ANIMA_DATASETS_DIR (absolute or relative).
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+DATASETS_DIR = os.environ.get("ANIMA_DATASETS_DIR") or str(_REPO_ROOT / "datasets")
+
+
+def _list_datasets() -> list[tuple[str, str]]:
+    """Return (display_name, path) for each subfolder of the datasets dir."""
+    base = Path(DATASETS_DIR)
+    base.mkdir(parents=True, exist_ok=True)
+    return [(p.name, str(p)) for p in sorted(base.iterdir()) if p.is_dir()]
 
 
 class TrainerSession:
@@ -118,8 +133,14 @@ def build_ui() -> gr.Blocks:
                 cache_dir = gr.Textbox("", label="Weights cache dir (blank = HF default)")
 
                 gr.Markdown("### Dataset")
-                image_dir = gr.Textbox("", label="Image folder",
-                                       placeholder=r"E:\datasets\my_character")
+                with gr.Row():
+                    image_dir = gr.Dropdown(
+                        choices=_list_datasets(), value=None, scale=5,
+                        label="Dataset (subfolder of ./datasets)",
+                        allow_custom_value=True)
+                    refresh_ds = gr.Button("🔄 Refresh", scale=1, min_width=90)
+                refresh_ds.click(lambda: gr.update(choices=_list_datasets()),
+                                 outputs=image_dir)
                 trigger = gr.Textbox("", label="Trigger word (optional)")
                 resolution = gr.Slider(512, 1536, value=1024, step=64, label="Resolution")
                 repeats = gr.Number(1, label="Repeats", precision=0)

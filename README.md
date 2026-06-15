@@ -104,13 +104,16 @@ anima-train my_run.toml                    # train
 ```
 
 ### Dataset layout
-A folder of images, each with an optional `.txt` caption sidecar:
+Each dataset is a folder of images, each with an optional `.txt` caption sidecar.
+The web UI lists subfolders of **`<repo>/datasets`** in a dropdown (override the base
+dir with `ANIMA_DATASETS_DIR`; you can also still type an arbitrary path):
 ```
-my_dataset/
-├── 001.png
-├── 001.txt        # "1girl, silver hair, ..." (natural language also works)
-├── 002.jpg
-└── 002.txt
+datasets/
+└── my_character/
+    ├── 001.png
+    ├── 001.txt        # "1girl, silver hair, ..." (natural language also works)
+    ├── 002.jpg
+    └── 002.txt
 ```
 Aspect-ratio **bucketing** (512–1536, Anima's supported range) and on-disk **latent +
 text-embedding caching** are on by default to keep VRAM and per-step cost low.
@@ -118,11 +121,10 @@ text-embedding caching** are on by default to keep VRAM and per-step cost low.
 ### Auto-tagging (WD14)
 
 Don't have captions? Generate danbooru-style tags with a WD14 tagger. It runs on
-**ONNX Runtime** (CPU by default — no torch needed), so you can tag before installing
-the training stack.
+**ONNX Runtime** (CPU by default — no torch needed) and is included in the base
+install, so it works out of the box.
 
 ```bash
-pip install -e ".[tagging]"          # adds onnxruntime
 anima-tag /path/to/images            # writes a .txt next to each image
 anima-tag imgs --character-threshold 0.7 --max-tags 30 --overwrite
 ```

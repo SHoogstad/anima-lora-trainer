@@ -26,13 +26,17 @@ dependencies = [
     "numpy>=1.26.0",
     "tomlkit>=0.13.0",
     "tqdm>=4.66.0",
+    # WD14 auto-tagging (CPU). The UI exposes tagging by default, so this is a
+    # base dep. For Intel-accelerated tagging install `onnxruntime-openvino`
+    # instead and pick the OpenVINOExecutionProvider.
+    "onnxruntime>=1.18.0",
 ]
 
 [project.optional-dependencies]
 # 8-bit optimizers / quantization are CUDA-only; keep them out of the base set.
 cuda-extras = ["bitsandbytes>=0.44.0"]
-# WD14 auto-tagging runs on ONNX Runtime (CPU by default; torch not required).
-tagging = ["onnxruntime>=1.18.0"]
+# Kept as a no-op alias for back-compat; onnxruntime is now a base dependency.
+tagging = []
 dev = ["pytest>=8.0.0", "ruff>=0.6.0"]
 
 [project.scripts]
