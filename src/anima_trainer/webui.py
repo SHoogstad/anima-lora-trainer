@@ -154,6 +154,76 @@ def build_ui() -> gr.Blocks:
                 output_dir = gr.Textbox("outputs", label="Output dir")
                 output_name = gr.Textbox("anima_lora", label="Output name")
 
+        with gr.Accordion("Auto-tag dataset (WD14)", open=False):
+            gr.Markdown(
+                "Generate danbooru-style `.txt` captions for the **Image folder** above "
+                "using a WD14 tagger (ONNX, runs on CPU). Existing captions are kept "
+                "unless *Overwrite* is checked.")
+            with gr.Row():
+                tagger_repo = gr.Textbox("SmilingWolf/wd-swinv2-tagger-v3",
+                                         label="Tagger HF repo")
+                tag_providers = gr.Dropdown(
+                    ["CPUExecutionProvider", "OpenVINOExecutionProvider",
+                     "DmlExecutionProvider", "CUDAExecutionProvider"],
+                    value="CPUExecutionProvider", label="ONNX provider")
+            with gr.Row():
+                general_thr = gr.Slider(0.1, 0.9, value=0.35, step=0.05,
+                                        label="General threshold")
+                character_thr = gr.Slider(0.1, 0.95, value=0.85, step=0.05,
+                                          label="Character threshold")
+                max_tags = gr.Number(0, label="Max tags (0 = all)", precision=0)
+            with gr.Row():
+                keep_underscores = gr.Checkbox(False, label="Keep underscores")
+                include_rating = gr.Checkbox(False, label="Include rating tag")
+                tag_overwrite = gr.Checkbox(False, label="Overwrite existing")
+            tag_btn = gr.Button("Auto-tag now")
+            tag_status = gr.Textbox("", label="Tagging status", lines=3, interactive=False)
+
+        def _autotag(image_dir, tagger_repo, tag_providers, general_thr, character_thr,
+                     max_tags, keep_underscores, include_rating, tag_overwrite):
+            if not image_dir:
+                yield "Set an Image folder first."
+                return
+            from .autotag import TagConfig, tag_directory
+            cfg = TagConfig(
+                repo_id=tagger_repo, providers=[tag_providers],
+                general_threshold=float(general_thr),
+                character_threshold=float(character_thr),
+                max_tags=int(max_tags), replace_underscore=not keep_underscores,
+                include_rating=include_rating, overwrite=tag_overwrite)
+            yield f"Loading tagger {tagger_repo} (first run downloads it)…"
+            state = {"msg": "starting…"}
+
+            def _p(done, total, name):
+                state["msg"] = f"[{done}/{total}] {name}"
+
+            # Run in a thread so we can stream progress back to the UI.
+            result: dict = {}
+
+            def _run():
+                try:
+                    result["summary"] = tag_directory(image_dir, cfg, progress=_p)
+                except Exception as exc:  # noqa: BLE001
+                    result["error"] = f"{type(exc).__name__}: {exc}"
+
+            t = threading.Thread(target=_run, daemon=True)
+            t.start()
+            while t.is_alive():
+                t.join(0.5)
+                yield state["msg"]
+            if "error" in result:
+                yield f"❌ {result['error']}"
+            else:
+                s = result["summary"]
+                yield (f"✅ Tagged {s['written']} image(s), skipped {s['skipped']} "
+                       f"of {s['total']}.")
+
+        tag_btn.click(_autotag,
+                      inputs=[image_dir, tagger_repo, tag_providers, general_thr,
+                              character_thr, max_tags, keep_underscores, include_rating,
+                              tag_overwrite],
+                      outputs=tag_status)
+
         with gr.Row():
             start_btn = gr.Button("Start training", variant="primary")
             stop_btn = gr.Button("Stop")

@@ -65,7 +65,7 @@ anima-train --env
 
 A ready-to-run container with the Intel GPU runtime stack (no oneAPI) is provided.
 The image is **OS + GPU-runtime only** — the Python venv, PyTorch, the app, the
-Hugging Face model cache, datasets, and LoRA outputs all live on a single named
+Hugging Face model cache, datasets, and LoRA outputs all live on a named
 **`workspace`** volume, so rebuilding the image never wipes any of it.
 
 ```bash
@@ -74,9 +74,14 @@ docker compose up --build      # first boot installs torch-XPU + the app into th
 ```
 
 - Edit code on the host (bind-mounted to `/workspace/app`) and restart to pick it up.
-- Datasets go in the `workspace` volume under `/workspace/datasets`.
-- Switch backends without changing files via `ANIMA_TORCH_INDEX` (e.g. a CUDA index)
-  in `docker-compose.yml`; set `ANIMA_REINSTALL=1` once to re-pull torch/app.
+- Datasets go under `/workspace/datasets` on the volume.
+- **Unraid:** add a `net.unraid.docker.webui` label for a clickable WebUI link, and
+  give the healthcheck a long `start_period` since the first boot installs torch. To
+  keep everything on the array, swap the named volume for a single host bind-mount
+  (e.g. `- /mnt/user/<share>/anima-lora-trainer:/workspace` plus
+  `ANIMA_APP_DIR=/workspace`).
+- Switch backends without changing files via `ANIMA_TORCH_INDEX` (e.g. a CUDA index);
+  set `ANIMA_REINSTALL=1` once to re-pull torch/app after dependency changes.
 - If `/dev/dri` access is restricted on your host, set the `render` group GID in the
   `group_add` block (see comments in `docker-compose.yml`).
 
@@ -110,6 +115,24 @@ my_dataset/
 Aspect-ratio **bucketing** (512–1536, Anima's supported range) and on-disk **latent +
 text-embedding caching** are on by default to keep VRAM and per-step cost low.
 
+### Auto-tagging (WD14)
+
+Don't have captions? Generate danbooru-style tags with a WD14 tagger. It runs on
+**ONNX Runtime** (CPU by default — no torch needed), so you can tag before installing
+the training stack.
+
+```bash
+pip install -e ".[tagging]"          # adds onnxruntime
+anima-tag /path/to/images            # writes a .txt next to each image
+anima-tag imgs --character-threshold 0.7 --max-tags 30 --overwrite
+```
+
+Or use the **Auto-tag dataset (WD14)** panel in the web UI (it points at the same
+Image folder and streams progress). Underscores are converted to spaces by default
+(Anima also understands natural language); thresholds, rating tags, and the tagger
+repo are all configurable. On Intel you can pass `--providers OpenVINOExecutionProvider`
+(install `onnxruntime-openvino`); on Windows, `DmlExecutionProvider`.
+
 ## Output
 
 LoRAs are written to `outputs/<name>.safetensors` with metadata (base model, rank,
@@ -134,6 +157,7 @@ anima-lora-trainer/
     ├── encoders.py   # the only model-specific VAE/text-encode forward passes
     ├── lora.py       # PEFT LoRA injection + safetensors export
     ├── dataset.py    # bucketing, image loading, latent/text caching
+    ├── autotag.py    # WD14 ONNX auto-captioning (`anima-tag`)
     ├── flow.py       # rectified-flow timestep sampling + loss
     ├── train.py      # the training loop (CLI + UI driver)
     ├── webui.py      # minimal Gradio control panel

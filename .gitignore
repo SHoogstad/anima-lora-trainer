@@ -9,10 +9,11 @@ dist/
 venv/
 env/
 
-# Trainer artifacts
+# Trainer artifacts (also the Docker /workspace runtime dirs when mounted at the repo root)
 /models_cache/
 /outputs/
 /cache/
+/datasets/
 *.safetensors
 *.ckpt
 *.pt

@@ -31,11 +31,14 @@ dependencies = [
 [project.optional-dependencies]
 # 8-bit optimizers / quantization are CUDA-only; keep them out of the base set.
 cuda-extras = ["bitsandbytes>=0.44.0"]
+# WD14 auto-tagging runs on ONNX Runtime (CPU by default; torch not required).
+tagging = ["onnxruntime>=1.18.0"]
 dev = ["pytest>=8.0.0", "ruff>=0.6.0"]
 
 [project.scripts]
 anima-trainer = "anima_trainer.webui:main"
 anima-train = "anima_trainer.cli:main"
+anima-tag = "anima_trainer.autotag:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
