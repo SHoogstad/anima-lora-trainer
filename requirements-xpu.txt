@@ -1,0 +1,14 @@
+# Intel GPU (XPU) backend — Arc / Battlemage / Lunar Lake iGPU / Data Center GPU Max.
+#
+# IMPORTANT: This uses PyTorch's NATIVE XPU support (torch.xpu), available in
+# PyTorch >= 2.8. We do NOT use intel-extension-for-pytorch (IPEX), which is
+# being discontinued in favor of upstream XPU support.
+#
+#   pip install torch>=2.8 --index-url https://download.pytorch.org/whl/xpu
+#   pip install -e .
+#
+# On Linux you may also need the oneAPI runtime / level-zero drivers installed.
+# On Windows, the Arc driver ships the necessary runtime; just install the wheel.
+#
+--index-url https://download.pytorch.org/whl/xpu
+torch>=2.8.0

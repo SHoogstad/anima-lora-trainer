@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anima-lora-trainer"
+version = "0.1.0"
+description = "LoRA trainer + Gradio web UI for the Anima (Cosmos-Predict2 DiT) model, with native Intel XPU and CUDA support (no IPEX)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "anima-lora-trainer contributors" }]
+
+# NOTE: torch is intentionally NOT pinned here. Install the correct backend
+# build first (see requirements-*.txt), because the wheel index differs for
+# CUDA vs Intel XPU vs CPU. These are the backend-agnostic deps.
+dependencies = [
+    "diffusers>=0.32.0",
+    "transformers>=4.46.0",
+    "peft>=0.13.0",
+    "safetensors>=0.4.5",
+    "accelerate>=1.0.0",
+    "huggingface-hub>=0.26.0",
+    "gradio>=5.0.0",
+    "Pillow>=10.0.0",
+    "numpy>=1.26.0",
+    "tomlkit>=0.13.0",
+    "tqdm>=4.66.0",
+]
+
+[project.optional-dependencies]
+# 8-bit optimizers / quantization are CUDA-only; keep them out of the base set.
+cuda-extras = ["bitsandbytes>=0.44.0"]
+dev = ["pytest>=8.0.0", "ruff>=0.6.0"]
+
+[project.scripts]
+anima-trainer = "anima_trainer.webui:main"
+anima-train = "anima_trainer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

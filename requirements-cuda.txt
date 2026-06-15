@@ -1,0 +1,8 @@
+# CUDA backend (NVIDIA). Install torch FIRST from the CUDA wheel index, then `pip install -e .`
+# Pick the cuXXX that matches your driver. cu124 works for most recent NVIDIA drivers.
+#
+#   pip install torch>=2.8 --index-url https://download.pytorch.org/whl/cu124
+#   pip install -e ".[cuda-extras]"
+#
+--index-url https://download.pytorch.org/whl/cu124
+torch>=2.8.0

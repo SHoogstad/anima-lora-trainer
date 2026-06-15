@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Trainer artifacts
+/models_cache/
+/outputs/
+/cache/
+*.safetensors
+*.ckpt
+*.pt
+*.log
+
+# HF / torch
+.cache/
+hf_home/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,60 @@
+# Default Anima LoRA training config.
+# Generate a fresh one anytime with:  anima-train --write-default my.toml
+
+backend = "auto"          # auto | cuda | xpu | cpu
+device_index = 0
+dtype = "bf16"            # bf16 | fp16 | fp32
+seed = 42
+
+batch_size = 1
+max_train_steps = 2000
+save_every_steps = 250
+sample_every_steps = 0
+gradient_checkpointing = true
+
+timestep_sampling = "logit_normal"   # uniform | logit_normal
+logit_mean = 0.0
+logit_std = 1.0
+
+output_dir = "outputs"
+output_name = "anima_lora"
+
+[model]
+repo_id = "circlestone-labs/Anima"
+dit_file = "split_files/diffusion_models/anima-base-v1.0.safetensors"
+text_encoder_file = "split_files/text_encoders/qwen_3_06b_base.safetensors"
+vae_file = "split_files/vae/qwen_image_vae.safetensors"
+revision = "main"
+
+[lora]
+rank = 16
+alpha = 16
+dropout = 0.0
+target_modules = ["to_q", "to_k", "to_v", "to_out.0"]
+block_indices = []        # empty = all transformer blocks
+train_self_attn = true    # attn1
+train_cross_attn = true   # attn2
+
+[dataset]
+image_dir = ""            # <-- set this to your image folder
+caption_ext = ".txt"
+default_caption = ""
+trigger_word = ""
+resolution = 1024         # Anima supports 512..1536
+bucket_min = 512
+bucket_max = 1536
+bucket_step = 64
+enable_bucketing = true
+repeats = 1
+cache_latents = true
+cache_text_embeds = true
+cache_dir = "cache"
+
+[optim]
+learning_rate = 1e-4
+optimizer = "adamw"       # adamw | adamw8bit (cuda) | adafactor
+weight_decay = 0.01
+lr_scheduler = "constant" # constant | cosine | linear | constant_with_warmup
+warmup_steps = 0
+max_grad_norm = 1.0
+gradient_accumulation_steps = 1
