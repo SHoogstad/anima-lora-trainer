@@ -1,0 +1,48 @@
+services:
+  anima-trainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: anima-lora-trainer:xpu
+    container_name: anima-lora-trainer
+    restart: unless-stopped
+
+    # --- Intel GPU passthrough -------------------------------------------
+    # Expose the host's render/display nodes to the container. Running as root
+    # (the image default) is enough to access /dev/dri/renderD128. If your host
+    # restricts it, uncomment group_add and set the render GID:
+    #   getent group render | cut -d: -f3
+    devices:
+      - /dev/dri:/dev/dri
+    # group_add:
+    #   - video
+    #   - "993"        # <- your host's `render` group GID
+
+    ports:
+      - "7860:7860"          # Gradio web UI
+
+    environment:
+      - ANIMA_HOST=0.0.0.0
+      - ANIMA_PORT=7860
+      # PyTorch wheel index. Default targets Intel XPU. For NVIDIA/CPU use e.g.:
+      #   ANIMA_TORCH_INDEX=https://download.pytorch.org/whl/cu124
+      - ANIMA_TORCH_INDEX=https://download.pytorch.org/whl/xpu
+      - HF_HOME=/workspace/hf_home
+      # Set to 1 once to reinstall torch/app after changing deps:
+      # - ANIMA_REINSTALL=1
+
+    volumes:
+      # ONE persistent volume holds everything that is NOT the OS: the Python
+      # venv, PyTorch, the installed app, the Hugging Face model cache, your
+      # datasets, the latent cache, and trained LoRAs. The image itself stays
+      # OS + GPU-runtime only, so `docker compose build` never wipes any of it.
+      - workspace:/workspace
+
+      # Project source, bind-mounted in and installed (-e) into the venv on the
+      # volume. Edit code on the host; restart the container to pick it up.
+      - ./:/workspace/app
+
+    shm_size: "2gb"
+
+volumes:
+  workspace:

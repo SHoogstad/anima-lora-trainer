@@ -54,6 +54,25 @@ Verify the backend was detected:
 anima-train --env
 ```
 
+### Docker (Intel GPU)
+
+A ready-to-run container with the Intel GPU runtime stack (no oneAPI) is provided.
+The image is **OS + GPU-runtime only** — the Python venv, PyTorch, the app, the
+Hugging Face model cache, datasets, and LoRA outputs all live on a single named
+**`workspace`** volume, so rebuilding the image never wipes any of it.
+
+```bash
+docker compose up --build      # first boot installs torch-XPU + the app into the volume
+# open http://localhost:7860
+```
+
+- Edit code on the host (bind-mounted to `/workspace/app`) and restart to pick it up.
+- Datasets go in the `workspace` volume under `/workspace/datasets`.
+- Switch backends without changing files via `ANIMA_TORCH_INDEX` (e.g. a CUDA index)
+  in `docker-compose.yml`; set `ANIMA_REINSTALL=1` once to re-pull torch/app.
+- If `/dev/dri` access is restricted on your host, set the `render` group GID in the
+  `group_add` block (see comments in `docker-compose.yml`).
+
 ## Use
 
 ### Web UI (Gradio)

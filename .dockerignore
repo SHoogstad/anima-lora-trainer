@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+models_cache/
+outputs/
+cache/
+hf_home/
+*.safetensors
+*.ckpt
+*.pt
+.pytest_cache
